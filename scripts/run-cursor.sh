@@ -81,14 +81,18 @@ $COMMENT
 
 ## AVAILABLE TOOLS
 
-You have access to Gitea via MCP tools. Use them to:
+You have full access to Gitea via MCP tools. Use them to:
 - Fetch all comments on this $ISSUE_TYPE to understand the full conversation history
 - If this is a PR: get the diff, changed files, and commits
 - Read files from the repository to understand the codebase
-- Create branches, make commits, and open pull requests
+- Create branches, make commits, and create pull requests
 - Post comments with your findings or questions
 
 ## YOUR INSTRUCTIONS
+
+**Before you begin:**
+- Always use MCP tools for Gitea interactions
+- Add a comment to the ${ISSUE_TYPE} to let the user know you've received the reuqest and that you now start working on it.
 
 1. **Gather More Context (if needed):**
    - Use MCP tools to fetch all comments on ${ISSUE_TYPE} #${ISSUE_NUMBER} to understand the discussion
@@ -105,8 +109,11 @@ You have access to Gitea via MCP tools. Use them to:
    - If reviewing code: post a structured review in the pull request
    - If answering questions: provide helpful, accurate information
    - If the request is not feasible or safe: explain why and suggest alternatives
+   - Use the MCP tool to create a Pull Request if needed
 
-4. **Post your response as a comment on the ${ISSUE_TYPE}**
+4. **Let the user know you've completed the request**
+    - Post your response as a comment on the ${ISSUE_TYPE}
+    - If the request is not feasible or safe: explain why and suggest alternatives
 
 ## SAFETY RULES
 
