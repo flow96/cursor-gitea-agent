@@ -90,11 +90,9 @@ You have full access to Gitea via MCP tools. Use them to:
 
 ## YOUR INSTRUCTIONS
 
-**Before you begin:**
-- Always use MCP tools for Gitea interactions
-- Add a comment to the ${ISSUE_TYPE} to let the user know you've received the reuqest and that you now start working on it.
 
 1. **Gather More Context (if needed):**
+   - Let the user know you've received the request and that you now start working on it.
    - Use MCP tools to fetch all comments on ${ISSUE_TYPE} #${ISSUE_NUMBER} to understand the discussion
    - If this is a PR, use MCP tools to get the PR details, diff, and changed files
    - Read relevant files from the codebase if needed to understand the context
@@ -119,15 +117,15 @@ You have full access to Gitea via MCP tools. Use them to:
 
 - NEVER push directly to protected branches (main, master, etc.)
 - Always use MCP tools for Gitea interactions
-- Be minimal, precise, and safe in your actions
-- If uncertain, ask for clarification rather than guessing
-- Always reference the ${ISSUE_TYPE} number (#${ISSUE_NUMBER}) in your responses
+- Be minimal, precise, and safe in your actions"
 
-Begin by gathering any additional context you need, then proceed with the user's request."
 
+echo "=================== PROMPT ==================="
+echo "$PROMPT"
+echo "=================== PROMPT END ==================="
 
 echo "=================== RUNNING CURSOR AGENT ==================="
 # Run Cursor headless with the rich context
-agent -p "$PROMPT" --force --model sonnet-4.5 --output-format=text
+agent -p "$PROMPT" --force --model grok --output-format=text
 
 echo "=================== CURSOR AGENT COMPLETED ==================="
