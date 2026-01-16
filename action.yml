@@ -11,16 +11,60 @@ inputs:
 runs:
   using: composite
   steps:
-    - run: |
+    - name: Check Comment and Capture Context
+      run: |
         echo "Checking the comment... ${{ gitea.event.comment.body }}"
         echo "${{ gitea.event.comment.body }}" > comment.txt
         if grep -q -i "@cursor" comment.txt; then
           echo "run_cursor=true" >> "$GITHUB_OUTPUT"
+          
+          # Capture rich context from the Gitea event
+          cat > context.json <<'EOF'
+        {
+          "comment": {
+            "body": ${{ toJSON(gitea.event.comment.body) }},
+            "id": ${{ toJSON(gitea.event.comment.id) }},
+            "user": ${{ toJSON(gitea.event.comment.user.login) }},
+            "created_at": ${{ toJSON(gitea.event.comment.created_at) }},
+            "html_url": ${{ toJSON(gitea.event.comment.html_url) }}
+          },
+          "issue": {
+            "number": ${{ toJSON(gitea.event.issue.number) }},
+            "title": ${{ toJSON(gitea.event.issue.title) }},
+            "body": ${{ toJSON(gitea.event.issue.body) }},
+            "state": ${{ toJSON(gitea.event.issue.state) }},
+            "labels": ${{ toJSON(gitea.event.issue.labels) }},
+            "user": ${{ toJSON(gitea.event.issue.user.login) }},
+            "html_url": ${{ toJSON(gitea.event.issue.html_url) }},
+            "is_pull_request": ${{ toJSON(gitea.event.issue.pull_request != null) }}
+          },
+          "repository": {
+            "name": ${{ toJSON(gitea.event.repository.name) }},
+            "owner": ${{ toJSON(gitea.event.repository.owner.login) }},
+            "full_name": ${{ toJSON(gitea.event.repository.full_name) }},
+            "html_url": ${{ toJSON(gitea.event.repository.html_url) }},
+            "default_branch": ${{ toJSON(gitea.event.repository.default_branch) }}
+          },
+          "sender": ${{ toJSON(gitea.event.sender.login) }}
+        }
+        EOF
+          
+          echo "Captured context:"
+          cat context.json
         else
           echo "No @cursor mention – skipping."
           echo "run_cursor=false" >> "$GITHUB_OUTPUT"
         fi
       shell: bash
+
+    - name: Install Cursor CLI
+      # if: steps.check.outputs.run_cursor == 'true'
+      shell: bash
+      run: |
+        set -e
+        echo "Installing Cursor CLI..."
+        curl https://cursor.com/install -fsS | bash
+        echo "$HOME/.cursor/bin" >> "$GITHUB_PATH"
 
     - name: Download Gitea MCP Server
       # if: steps.check.outputs.run_cursor == 'true'
@@ -46,6 +90,20 @@ runs:
 
         echo "Gitea MCP Server ready at $MCP_DIR/gitea-mcp"
 
+    - name: Install MCP config
+      # if: steps.check.outputs.run_cursor == 'true'
+      shell: bash
+      run: |
+        set -e
+
+        echo "Installing mcp.json..."
+        mkdir -p "$HOME/.cursor"
+
+        cp "$GITHUB_ACTION_PATH/.cursor/mcp.json" "$HOME/.cursor/mcp.json"
+
+        echo "Installed MCP config:"
+        cat "$HOME/.cursor/mcp.json"
+
     - name: Run Cursor
       # if: steps.check.outputs.run_cursor == 'true'
       shell: bash
@@ -55,5 +113,6 @@ runs:
         GITEA_BASE_URL: ${{ inputs.gitea_base_url }}
         GITEA_MCP_PATH: /tmp/gitea-mcp/gitea-mcp
       run: |
+        set -e
         chmod +x "$GITHUB_ACTION_PATH/scripts/"*.sh
         "$GITHUB_ACTION_PATH/scripts/run-cursor.sh"

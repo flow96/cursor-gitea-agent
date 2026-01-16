@@ -4,24 +4,90 @@ set -e
 # Enable Gitea MCP server
 agent mcp enable gitea
 
+# Extract the user's request (everything after @cursor)
 COMMENT=$(cat comment.txt | sed 's/.*@cursor//')
 
-# Run Cursor headless
-agent -p "You are an autonomous software engineering agent.
+# Parse context using jq
+ISSUE_NUMBER=$(jq -r '.issue.number' context.json)
+ISSUE_TITLE=$(jq -r '.issue.title' context.json)
+ISSUE_BODY=$(jq -r '.issue.body // "No description provided"' context.json)
+ISSUE_STATE=$(jq -r '.issue.state' context.json)
+ISSUE_URL=$(jq -r '.issue.html_url' context.json)
+IS_PR=$(jq -r '.issue.is_pull_request' context.json)
+REPO_FULL_NAME=$(jq -r '.repository.full_name' context.json)
+REPO_OWNER=$(jq -r '.repository.owner' context.json)
+REPO_NAME=$(jq -r '.repository.name' context.json)
+COMMENT_USER=$(jq -r '.comment.user' context.json)
+COMMENT_URL=$(jq -r '.comment.html_url' context.json)
+ISSUE_AUTHOR=$(jq -r '.issue.user' context.json)
+LABELS=$(jq -r '.issue.labels | map(.name) | join(", ")' context.json)
 
-Context:
-- This repository is hosted on Gitea.
-- You have access to Gitea via MCP tools.
-- You must only act on explicit user request.
+# Determine if this is an issue or PR
+if [ "$IS_PR" = "true" ]; then
+  ISSUE_TYPE="Pull Request"
+else
+  ISSUE_TYPE="Issue"
+fi
 
-User request:
+# Build the context-rich prompt
+PROMPT="You are an autonomous software engineering agent for repository: $REPO_FULL_NAME
+
+## CONTEXT INFORMATION
+
+**Repository:** $REPO_FULL_NAME
+**${ISSUE_TYPE} #${ISSUE_NUMBER}:** $ISSUE_TITLE
+**Status:** $ISSUE_STATE
+**Author:** $ISSUE_AUTHOR
+**Labels:** ${LABELS:-None}
+**URL:** $ISSUE_URL
+
+**${ISSUE_TYPE} Description:**
+$ISSUE_BODY
+
+**Comment by @${COMMENT_USER}:**
+$COMMENT_URL
+
+## USER REQUEST
+
+@${COMMENT_USER} has requested:
 $COMMENT
 
-Rules:
-- Always use MCP tools for Gitea interactions.
-- Never push directly to protected branches (main, master, etc.).
-- If implementing code, create a feature branch and open a pull request.
-- If reviewing code, post a structured review in the pull request.
-- If the request is unclear, ask for clarification via a comment.
-- Be minimal, precise, and safe.
-- If the request is not related to the repository, politely decline and suggest the user to open an issue or discuss it in the appropriate channel." --force --model grok-code-fast-1 --output-format=text
+## AVAILABLE TOOLS
+
+You have access to Gitea via MCP tools. Use them to:
+- Fetch all comments on this $ISSUE_TYPE to understand the full conversation history
+- If this is a PR: get the diff, changed files, and commits
+- Read files from the repository to understand the codebase
+- Create branches, make commits, and open pull requests
+- Post comments with your findings or questions
+
+## YOUR INSTRUCTIONS
+
+1. **Gather More Context (if needed):**
+   - Use MCP tools to fetch all comments on ${ISSUE_TYPE} #${ISSUE_NUMBER} to understand the discussion
+   - If this is a PR, use MCP tools to get the PR details, diff, and changed files
+   - Read relevant files from the codebase if needed to understand the context
+
+2. **Analyze the Request:**
+   - Understand what the user is asking for
+   - Consider the context of the $ISSUE_TYPE and previous discussion
+   - If the request is unclear, ask for clarification via a comment
+
+3. **Take Action:**
+   - If implementing code: create a feature branch and open a pull request
+   - If reviewing code: post a structured review in the pull request
+   - If answering questions: provide helpful, accurate information
+   - If the request is not feasible or safe: explain why and suggest alternatives
+
+## SAFETY RULES
+
+- NEVER push directly to protected branches (main, master, etc.)
+- Always use MCP tools for Gitea interactions
+- Be minimal, precise, and safe in your actions
+- If uncertain, ask for clarification rather than guessing
+- Always reference the ${ISSUE_TYPE} number (#${ISSUE_NUMBER}) in your responses
+
+Begin by gathering any additional context you need, then proceed with the user's request."
+
+# Run Cursor headless with the rich context
+agent -p "$PROMPT" --force --model grok-code-fast-1 --output-format=text
