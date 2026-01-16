@@ -90,13 +90,18 @@ runs:
     - name: Install MCP config
       if: steps.check.outputs.run_cursor == 'true'
       shell: bash
+      env:
+        GITEA_ACCESS_TOKEN: ${{ inputs.gitea_token }}
+        GITEA_BASE_URL: ${{ inputs.gitea_base_url }}
+        GITEA_MCP_PATH: /tmp/gitea-mcp/gitea-mcp
       run: |
         set -e
 
         echo "Installing mcp.json..."
         mkdir -p "$HOME/.cursor"
 
-        cp "$GITHUB_ACTION_PATH/.cursor/mcp.json" "$HOME/.cursor/mcp.json"
+        # Substitute environment variables in mcp.json
+        envsubst < "$GITHUB_ACTION_PATH/.cursor/mcp.json" > "$HOME/.cursor/mcp.json"
 
         echo "Installed MCP config:"
         cat "$HOME/.cursor/mcp.json"
