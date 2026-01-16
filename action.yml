@@ -58,21 +58,14 @@ runs:
       shell: bash
 
     - name: Install Cursor CLI
-      # if: steps.check.outputs.run_cursor == 'true'
-      shell: bash
       run: |
-        set -e
-        echo "Installing Cursor CLI..."
         curl https://cursor.com/install -fsS | bash
-        
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-        source ~/.bashrc
+        echo "$HOME/.cursor/bin" >> $GITHUB_PATH
 
-        echo "Agent version:"
+    - name: Verify Cursor CLI
+      run: |
+        echo "Verifying Cursor CLI..."
         agent -v
-        
-        # Add to GITHUB_PATH for subsequent steps (though this doesn't work in composite actions)
-        echo "$HOME/.cursor/bin" >> "$GITHUB_PATH"
 
     - name: Download Gitea MCP Server
       # if: steps.check.outputs.run_cursor == 'true'
