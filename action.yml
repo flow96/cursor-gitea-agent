@@ -64,8 +64,19 @@ runs:
         set -e
         echo "Installing Cursor CLI..."
         curl https://cursor.com/install -fsS | bash
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-        source ~/.bashrc
+        
+        # Verify installation
+        if [ -f "$HOME/.cursor/bin/agent" ]; then
+            echo "✓ Cursor CLI installed successfully at $HOME/.cursor/bin/agent"
+            ls -la "$HOME/.cursor/bin/"
+        else
+            echo "✗ Error: Cursor CLI not found at $HOME/.cursor/bin/agent"
+            echo "Searching for agent binary..."
+            find "$HOME" -name "agent" -type f 2>/dev/null || echo "No agent binary found"
+            exit 1
+        fi
+        
+        # Add to GITHUB_PATH for subsequent steps (though this doesn't work in composite actions)
         echo "$HOME/.cursor/bin" >> "$GITHUB_PATH"
 
     - name: Download Gitea MCP Server
@@ -116,5 +127,20 @@ runs:
         GITEA_MCP_PATH: /tmp/gitea-mcp/gitea-mcp
       run: |
         set -e
+        
+        # Add Cursor CLI to PATH
+        export PATH="$HOME/.cursor/bin:$PATH"
+        
+        # Verify agent is available
+        if ! command -v agent &> /dev/null; then
+            echo "Error: Cursor CLI 'agent' command not found"
+            echo "PATH: $PATH"
+            echo "Checking if binary exists at $HOME/.cursor/bin/agent..."
+            ls -la "$HOME/.cursor/bin/" 2>/dev/null || echo "Directory does not exist"
+            exit 1
+        fi
+        
+        echo "Cursor CLI found at: $(command -v agent)"
+        
         chmod +x "$GITHUB_ACTION_PATH/scripts/"*.sh
         "$GITHUB_ACTION_PATH/scripts/run-cursor.sh"
