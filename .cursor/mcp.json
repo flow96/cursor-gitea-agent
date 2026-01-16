@@ -1,0 +1,13 @@
+{
+    "mcpServers": {
+        "gitea": {
+          "command": "${env:GITEA_MCP_PATH}",
+          "args": [
+            "-t", "stdio",
+            "--host", "${env:GITEA_BASE_URL}",
+            "--token", "${env:GITEA_ACCESS_TOKEN}"
+          ]
+      }
+    }
+  }
+  
