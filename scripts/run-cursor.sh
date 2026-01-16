@@ -106,6 +106,8 @@ You have access to Gitea via MCP tools. Use them to:
    - If answering questions: provide helpful, accurate information
    - If the request is not feasible or safe: explain why and suggest alternatives
 
+4. **Post your response as a comment on the ${ISSUE_TYPE}**
+
 ## SAFETY RULES
 
 - NEVER push directly to protected branches (main, master, etc.)
