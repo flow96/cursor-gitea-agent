@@ -12,12 +12,13 @@ runs:
   using: composite
   steps:
     - name: Check Comment and Capture Context
+      id: check
       run: |
         echo "Checking the comment... ${{ gitea.event.comment.body }}"
         echo "${{ gitea.event.comment.body }}" > comment.txt
         if grep -q -i "@cursor" comment.txt; then
           echo "run_cursor=true" >> "$GITHUB_OUTPUT"
-          
+
           # Capture rich context from the Gitea event
           cat > context.json <<'EOF'
         {
@@ -62,13 +63,8 @@ runs:
         curl https://cursor.com/install -fsS | bash
         echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    - name: Verify Cursor CLI
-      run: |
-        echo "Verifying Cursor CLI..."
-        agent -v
-
     - name: Download Gitea MCP Server
-      # if: steps.check.outputs.run_cursor == 'true'
+      if: steps.check.outputs.run_cursor == 'true'
       shell: bash
       run: |
         set -e
@@ -92,7 +88,7 @@ runs:
         echo "Gitea MCP Server ready at $MCP_DIR/gitea-mcp"
 
     - name: Install MCP config
-      # if: steps.check.outputs.run_cursor == 'true'
+      if: steps.check.outputs.run_cursor == 'true'
       shell: bash
       run: |
         set -e
@@ -106,7 +102,7 @@ runs:
         cat "$HOME/.cursor/mcp.json"
 
     - name: Run Cursor
-      # if: steps.check.outputs.run_cursor == 'true'
+      if: steps.check.outputs.run_cursor == 'true'
       shell: bash
       env:
         CURSOR_API_KEY: ${{ inputs.cursor_api_key }}
