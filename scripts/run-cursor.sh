@@ -1,17 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-# Add Cursor CLI to PATH
-export PATH="$HOME/.cursor/bin:$PATH"
-
-# Verify required commands are available
-if ! command -v agent &> /dev/null; then
-    echo "Error: Cursor CLI 'agent' command not found"
-    echo "PATH: $PATH"
-    echo "Checking if binary exists at $HOME/.cursor/bin/agent..."
-    ls -la "$HOME/.cursor/bin/" || echo "Directory does not exist"
-    exit 1
-fi
 
 if ! command -v jq &> /dev/null; then
     echo "Error: 'jq' command not found. Installing..."
