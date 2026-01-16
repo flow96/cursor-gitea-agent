@@ -128,6 +128,6 @@ Begin by gathering any additional context you need, then proceed with the user's
 
 echo "=================== RUNNING CURSOR AGENT ==================="
 # Run Cursor headless with the rich context
-agent -p "$PROMPT" --force --model grok --output-format=text
+agent -p "$PROMPT" --force --model sonnet-4.5 --output-format=text
 
 echo "=================== CURSOR AGENT COMPLETED ==================="
