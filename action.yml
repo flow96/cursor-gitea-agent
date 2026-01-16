@@ -16,7 +16,8 @@ runs:
       run: |
         echo "Checking the comment... ${{ gitea.event.comment.body }}"
         echo "${{ gitea.event.comment.body }}" > comment.txt
-        if grep -q -i "@cursor" comment.txt; then
+        COMMENT_USER="${{ gitea.event.comment.user.login }}"
+        if grep -q -i "@cursor" comment.txt && ! echo "$COMMENT_USER" | grep -q -i "^cursor$"; then
           echo "run_cursor=true" >> "$GITHUB_OUTPUT"
 
           # Capture rich context from the Gitea event
