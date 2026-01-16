@@ -118,5 +118,9 @@ You have access to Gitea via MCP tools. Use them to:
 
 Begin by gathering any additional context you need, then proceed with the user's request."
 
+
+echo "=================== RUNNING CURSOR AGENT ==================="
 # Run Cursor headless with the rich context
 agent -p "$PROMPT" --force --model grok --output-format=text
+
+echo "=================== CURSOR AGENT COMPLETED ==================="
