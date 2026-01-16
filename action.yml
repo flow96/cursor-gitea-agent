@@ -65,16 +65,11 @@ runs:
         echo "Installing Cursor CLI..."
         curl https://cursor.com/install -fsS | bash
         
-        # Verify installation
-        if [ -f "$HOME/.cursor/bin/agent" ]; then
-            echo "✓ Cursor CLI installed successfully at $HOME/.cursor/bin/agent"
-            ls -la "$HOME/.cursor/bin/"
-        else
-            echo "✗ Error: Cursor CLI not found at $HOME/.cursor/bin/agent"
-            echo "Searching for agent binary..."
-            find "$HOME" -name "agent" -type f 2>/dev/null || echo "No agent binary found"
-            exit 1
-        fi
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+        source ~/.bashrc
+
+        echo "Agent version:"
+        agent -v
         
         # Add to GITHUB_PATH for subsequent steps (though this doesn't work in composite actions)
         echo "$HOME/.cursor/bin" >> "$GITHUB_PATH"
