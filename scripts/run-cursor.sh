@@ -1,8 +1,47 @@
 #!/usr/bin/env bash
 set -e
 
+# Add Cursor CLI to PATH
+export PATH="$HOME/.cursor/bin:$PATH"
+
+# Verify required commands are available
+if ! command -v agent &> /dev/null; then
+    echo "Error: Cursor CLI 'agent' command not found"
+    echo "PATH: $PATH"
+    echo "Checking if binary exists at $HOME/.cursor/bin/agent..."
+    ls -la "$HOME/.cursor/bin/" || echo "Directory does not exist"
+    exit 1
+fi
+
+if ! command -v jq &> /dev/null; then
+    echo "Error: 'jq' command not found. Installing..."
+    # Try to install jq based on available package manager
+    if command -v apt-get &> /dev/null; then
+        apt-get update && apt-get install -y jq
+    elif command -v apk &> /dev/null; then
+        apk add --no-cache jq
+    elif command -v yum &> /dev/null; then
+        yum install -y jq
+    else
+        echo "Error: Could not install jq. Please install it manually."
+        exit 1
+    fi
+fi
+
 # Enable Gitea MCP server
 agent mcp enable gitea
+
+# Verify required files exist
+if [ ! -f "comment.txt" ]; then
+    echo "Error: comment.txt not found"
+    exit 1
+fi
+
+if [ ! -f "context.json" ]; then
+    echo "Error: context.json not found"
+    echo "This file should be created by the 'Check Comment and Capture Context' step"
+    exit 1
+fi
 
 # Extract the user's request (everything after @cursor)
 COMMENT=$(cat comment.txt | sed 's/.*@cursor//')
