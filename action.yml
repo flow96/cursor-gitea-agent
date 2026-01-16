@@ -60,7 +60,7 @@ runs:
     - name: Install Cursor CLI
       run: |
         curl https://cursor.com/install -fsS | bash
-        echo "$HOME/.cursor/bin" >> $GITHUB_PATH
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
 
     - name: Verify Cursor CLI
       run: |
@@ -114,21 +114,6 @@ runs:
         GITEA_BASE_URL: ${{ inputs.gitea_base_url }}
         GITEA_MCP_PATH: /tmp/gitea-mcp/gitea-mcp
       run: |
-        set -e
-        
-        # Add Cursor CLI to PATH
-        export PATH="$HOME/.cursor/bin:$PATH"
-        
-        # Verify agent is available
-        if ! command -v agent &> /dev/null; then
-            echo "Error: Cursor CLI 'agent' command not found"
-            echo "PATH: $PATH"
-            echo "Checking if binary exists at $HOME/.cursor/bin/agent..."
-            ls -la "$HOME/.cursor/bin/" 2>/dev/null || echo "Directory does not exist"
-            exit 1
-        fi
-        
-        echo "Cursor CLI found at: $(command -v agent)"
-        
+        set -e        
         chmod +x "$GITHUB_ACTION_PATH/scripts/"*.sh
         "$GITHUB_ACTION_PATH/scripts/run-cursor.sh"
