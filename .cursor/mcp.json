@@ -3,10 +3,13 @@
         "gitea": {
           "command": "${env:GITEA_MCP_PATH}",
           "args": [
-            "-t", "stdio",
-            "--host", "${env:GITEA_BASE_URL}",
-            "--token", "${env:GITEA_ACCESS_TOKEN}"
-          ]
+            "-t",
+            "stdio"
+          ],
+          "env": {
+            "GITEA_HOST": "${env:GITEA_BASE_URL}",
+            "GITEA_ACCESS_TOKEN": "${env:GITEA_ACCESS_TOKEN}"
+          }
       }
     }
   }
