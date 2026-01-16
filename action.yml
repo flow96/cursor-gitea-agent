@@ -110,6 +110,5 @@ runs:
         GITEA_BASE_URL: ${{ inputs.gitea_base_url }}
         GITEA_MCP_PATH: /tmp/gitea-mcp/gitea-mcp
       run: |
-        set -e        
         chmod +x "$GITHUB_ACTION_PATH/scripts/"*.sh
         "$GITHUB_ACTION_PATH/scripts/run-cursor.sh"
