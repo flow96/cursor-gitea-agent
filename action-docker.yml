@@ -1,0 +1,80 @@
+name: Cursor Agent
+description: Run Cursor CLI on @cursor mentions
+inputs:
+  cursor_api_key:
+    required: true
+  gitea_token:
+    required: true
+  gitea_base_url:
+    required: true
+  ai_model:
+    required: true
+    default: sonnet-4.5
+
+runs:
+  using: composite
+  steps:
+    - name: Check Comment and Capture Context
+      id: check
+      run: |
+        echo "Checking the comment... ${{ gitea.event.comment.body }}"
+        echo "${{ gitea.event.comment.body }}" > comment.txt
+        COMMENT_USER="${{ gitea.event.comment.user.login }}"
+        if grep -q -i "@cursor" comment.txt && ! echo "$COMMENT_USER" | grep -q -i "^cursor$"; then
+          echo "run_cursor=true" >> "$GITHUB_OUTPUT"
+
+          # Capture rich context from the Gitea event
+          cat > context.json <<'EOF'
+        {
+          "comment": {
+            "body": ${{ toJSON(gitea.event.comment.body) }},
+            "id": ${{ toJSON(gitea.event.comment.id) }},
+            "user": ${{ toJSON(gitea.event.comment.user.login) }},
+            "created_at": ${{ toJSON(gitea.event.comment.created_at) }},
+            "html_url": ${{ toJSON(gitea.event.comment.html_url) }}
+          },
+          "issue": {
+            "number": ${{ toJSON(gitea.event.issue.number) }},
+            "title": ${{ toJSON(gitea.event.issue.title) }},
+            "body": ${{ toJSON(gitea.event.issue.body) }},
+            "state": ${{ toJSON(gitea.event.issue.state) }},
+            "labels": ${{ toJSON(gitea.event.issue.labels) }},
+            "user": ${{ toJSON(gitea.event.issue.user.login) }},
+            "html_url": ${{ toJSON(gitea.event.issue.html_url) }},
+            "is_pull_request": ${{ toJSON(gitea.event.issue.pull_request != null) }}
+          },
+          "repository": {
+            "name": ${{ toJSON(gitea.event.repository.name) }},
+            "owner": ${{ toJSON(gitea.event.repository.owner.login) }},
+            "full_name": ${{ toJSON(gitea.event.repository.full_name) }},
+            "html_url": ${{ toJSON(gitea.event.repository.html_url) }},
+            "default_branch": ${{ toJSON(gitea.event.repository.default_branch) }}
+          },
+          "sender": ${{ toJSON(gitea.event.sender.login) }}
+        }
+        EOF
+          
+          echo "Captured context:"
+          cat context.json
+        else
+          echo "No @cursor mention – skipping."
+          echo "run_cursor=false" >> "$GITHUB_OUTPUT"
+        fi
+      shell: bash
+
+    - name: Script im Container ausführen
+      if: steps.check.outputs.run_cursor == 'true'
+      shell: bash
+      env:
+        CURSOR_API_KEY: ${{ inputs.cursor_api_key }}
+        GITEA_ACCESS_TOKEN: ${{ inputs.gitea_token }}
+        GITEA_BASE_URL: ${{ inputs.gitea_base_url }}
+        AI_MODEL: ${{ inputs.ai_model }}
+      run: |
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          -e CURSOR_API_KEY=${{CURSOR_API_KEY}} \
+          -e GITEA_ACCESS_TOKEN=${{GITEA_ACCESS_TOKEN}} \
+          -e GITEA_BASE_URL=${{GITEA_BASE_URL}} \
+          -e AI_MODEL=${{AI_MODEL}} \
+          ghcr.io/flow96/cursor-gitea-agent:latest
