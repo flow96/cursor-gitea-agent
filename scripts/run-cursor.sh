@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-echo "Running"
+mkdir -p "$HOME/.cursor"
 echo "{\"mcpServers\": {\"gitea\": {\"command\": \"/tmp/gitea-mcp/gitea-mcp\", \"args\": [\"-t\", \"stdio\"], \"env\": {\"GITEA_HOST\": \"${GITEA_BASE_URL}\", \"GITEA_ACCESS_TOKEN\": \"${GITEA_ACCESS_TOKEN}\"}}}}" >> "$HOME/.cursor/mcp.json"
 
 # Enable Gitea MCP server
