@@ -70,16 +70,25 @@ runs:
         echo "DEBUG: github.workspace value: ${{ github.workspace }}"
         echo "DEBUG: Files in github.workspace:"
         ls -la ${{ github.workspace }}
-        echo "DEBUG: Checking if files exist:"
-        ls -la ${{ github.workspace }}/comment.txt || echo "comment.txt not found at that path"
-        ls -la ${{ github.workspace }}/context.json || echo "context.json not found at that path"
+        
+        # Copy files to a temporary location that Docker can access
+        TEMP_DIR=$(mktemp -d)
+        cp ${{ github.workspace }}/comment.txt "$TEMP_DIR/"
+        cp ${{ github.workspace }}/context.json "$TEMP_DIR/"
+        
+        echo "DEBUG: Temp dir: $TEMP_DIR"
+        echo "DEBUG: Files in temp dir:"
+        ls -la "$TEMP_DIR"
         
         docker pull ghcr.io/flow96/cursor-gitea-agent:latest
         docker run --rm \
-          --mount type=bind,source=${{ github.workspace }},target=/repo \
+          -v "$TEMP_DIR":/repo \
           -w /repo \
           -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
           -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
           -e GITEA_BASE_URL=${{ inputs.gitea_base_url }} \
           -e AI_MODEL=${{ inputs.ai_model }} \
           ghcr.io/flow96/cursor-gitea-agent:latest
+        
+        # Cleanup
+        rm -rf "$TEMP_DIR"
