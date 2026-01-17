@@ -65,16 +65,11 @@ runs:
     - name: Script im Container ausführen
       if: steps.check.outputs.run_cursor == 'true'
       shell: bash
-      env:
-        CURSOR_API_KEY: ${{ inputs.cursor_api_key }}
-        GITEA_ACCESS_TOKEN: ${{ inputs.gitea_token }}
-        GITEA_BASE_URL: ${{ inputs.gitea_base_url }}
-        AI_MODEL: ${{ inputs.ai_model }}
       run: |
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
-          -e CURSOR_API_KEY=${{CURSOR_API_KEY}} \
-          -e GITEA_ACCESS_TOKEN=${{GITEA_ACCESS_TOKEN}} \
-          -e GITEA_BASE_URL=${{GITEA_BASE_URL}} \
-          -e AI_MODEL=${{AI_MODEL}} \
+          -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
+          -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
+          -e GITEA_BASE_URL=${{ inputs.gitea_base_url }} \
+          -e AI_MODEL=${{ inputs.ai_model }} \
           ghcr.io/flow96/cursor-gitea-agent:latest
