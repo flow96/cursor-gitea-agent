@@ -40,7 +40,7 @@ Store secrets for the following parameters:
 - `cursor_api_key` (required): Your Cursor API key
 - `gitea_token` (required): Gitea API token created from the new cursor account with repository access
 - `gitea_base_url` (required): Your Gitea instance URL
-- `ai_model` (required): AI model to use (default: `sonnet-4.5`)
+- `ai_model` (required): AI model to use (default: `sonnet-4.5`, available models: `auto, composer-1, gpt-5.2-codex, gpt-5.2-codex-high, gpt-5.2-codex-low, gpt-5.2-codex-xhigh, gpt-5.2-codex-fast, gpt-5.2-codex-high-fast, gpt-5.2-codex-low-fast, gpt-5.2-codex-xhigh-fast, gpt-5.1-codex-max, gpt-5.1-codex-max-high, gpt-5.2, opus-4.5-thinking, gpt-5.2-high, gemini-3-pro, opus-4.5, sonnet-4.5, sonnet-4.5-thinking, gpt-5.1-high, gemini-3-flash, grok`)
 
 ## How it works
 
