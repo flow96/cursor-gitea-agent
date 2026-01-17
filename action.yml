@@ -67,7 +67,8 @@ runs:
       shell: bash
       run: |
         docker run --rm \
-          -v ${{ github.workspace }}:/workspace \
+          -v ./comment.txt:/workspace \
+          -v ./context.json:/workspace \
           -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
           -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
           -e GITEA_BASE_URL=${{ inputs.gitea_base_url }} \
