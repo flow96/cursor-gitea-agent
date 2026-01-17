@@ -7,6 +7,8 @@ echo "{\"mcpServers\": {\"gitea\": {\"command\": \"/tmp/gitea-mcp/gitea-mcp\", \
 # Enable Gitea MCP server
 agent mcp enable gitea
 
+pwd
+ls -la
 # Verify required files exist
 if [ ! -f "comment.txt" ]; then
     echo "Error: comment.txt not found"

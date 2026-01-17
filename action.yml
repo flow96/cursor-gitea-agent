@@ -18,13 +18,13 @@ runs:
       id: check
       run: |
         echo "Checking the comment... ${{ gitea.event.comment.body }}"
-        echo "${{ gitea.event.comment.body }}" > comment.txt
+        echo "${{ gitea.event.comment.body }}" > ${{ github.workspace }}/comment.txt
         COMMENT_USER="${{ gitea.event.comment.user.login }}"
-        if grep -q -i "@cursor" comment.txt && ! echo "$COMMENT_USER" | grep -q -i "^cursor$"; then
+        if grep -q -i "@cursor" ${{ github.workspace }}/comment.txt && ! echo "$COMMENT_USER" | grep -q -i "^cursor$"; then
           echo "run_cursor=true" >> "$GITHUB_OUTPUT"
 
           # Capture rich context from the Gitea event
-          cat > context.json <<'EOF'
+          cat > ${{ github.workspace }}/context.json <<'EOF'
         {
           "comment": {
             "body": ${{ toJSON(gitea.event.comment.body) }},
@@ -55,7 +55,7 @@ runs:
         EOF
           
           echo "Captured context:"
-          cat context.json
+          cat ${{ github.workspace }}/context.json
         else
           echo "No @cursor mention – skipping."
           echo "run_cursor=false" >> "$GITHUB_OUTPUT"
@@ -67,8 +67,7 @@ runs:
       shell: bash
       run: |
         docker run --rm \
-          -v ./comment.txt:/workspace \
-          -v ./context.json:/workspace \
+          -v ${{ github.workspace }}:/workspace \
           -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
           -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
           -e GITEA_BASE_URL=${{ inputs.gitea_base_url }} \
