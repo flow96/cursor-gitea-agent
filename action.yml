@@ -66,9 +66,18 @@ runs:
       if: steps.check.outputs.run_cursor == 'true'
       shell: bash
       run: |
+        echo "DEBUG: Current directory: $(pwd)"
+        echo "DEBUG: github.workspace value: ${{ github.workspace }}"
+        echo "DEBUG: Files in github.workspace:"
+        ls -la ${{ github.workspace }}
+        echo "DEBUG: Checking if files exist:"
+        ls -la ${{ github.workspace }}/comment.txt || echo "comment.txt not found at that path"
+        ls -la ${{ github.workspace }}/context.json || echo "context.json not found at that path"
+        
         docker pull ghcr.io/flow96/cursor-gitea-agent:latest
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
+          -w /workspace \
           -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
           -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
           -e GITEA_BASE_URL=${{ inputs.gitea_base_url }} \
