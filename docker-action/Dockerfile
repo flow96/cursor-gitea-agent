@@ -24,7 +24,7 @@ RUN mkdir -p /tmp/gitea-mcp && \
     rm gitea-mcp.tar.gz
 
 # Copy the run script and make it executable
-COPY scripts/run-cursor.sh /usr/local/bin/run-cursor.sh
+COPY run-cursor-docker.sh /usr/local/bin/run-cursor.sh
 RUN chmod +x /usr/local/bin/run-cursor.sh
 
 # Set environment variables

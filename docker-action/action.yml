@@ -60,36 +60,7 @@ runs:
         fi
       shell: bash
 
-    - name: Install Cursor CLI
-      run: |
-        curl https://cursor.com/install -fsS | bash
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-    - name: Download Gitea MCP Server
-      if: steps.check.outputs.run_cursor == 'true'
-      shell: bash
-      run: |
-        set -e
-
-        MCP_DIR="/tmp/gitea-mcp"
-        MCP_TAR="gitea-mcp.tar.gz"
-        MCP_URL="https://gitea.com/gitea/gitea-mcp/releases/download/v0.7.0/gitea-mcp_Linux_x86_64.tar.gz"
-
-        mkdir -p "$MCP_DIR"
-        cd "$MCP_DIR"
-
-        echo "Downloading Gitea MCP Server..."
-        curl -L "$MCP_URL" -o "$MCP_TAR"
-
-        echo "Extracting..."
-        tar -xzf "$MCP_TAR"
-
-        echo "Making binary executable..."
-        chmod +x gitea-mcp
-
-        echo "Gitea MCP Server ready at $MCP_DIR/gitea-mcp"
-
-    - name: Run Cursor
+    - name: Run Cursor Agent
       if: steps.check.outputs.run_cursor == 'true'
       shell: bash
       env:
@@ -98,6 +69,13 @@ runs:
         GITEA_BASE_URL: ${{ inputs.gitea_base_url }}
         AI_MODEL: ${{ inputs.ai_model }}
       run: |
-        chmod +x "$GITHUB_ACTION_PATH/scripts/"*.sh
-        "$GITHUB_ACTION_PATH/scripts/run-cursor.sh"
-
+        COMMENT_CONTENT=$(cat ${{ github.workspace }}/comment.txt)
+        CONTEXT_JSON=$(cat ${{ github.workspace }}/context.json)
+        docker run --rm \
+          -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
+          -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
+          -e GITEA_BASE_URL=${{ inputs.gitea_base_url }} \
+          -e AI_MODEL=${{ inputs.ai_model }} \
+          -e COMMENT_CONTENT="$COMMENT_CONTENT" \
+          -e CONTEXT_JSON="$CONTEXT_JSON" \
+          ghcr.io/flow96/cursor-gitea-agent:latest
