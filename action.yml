@@ -66,29 +66,16 @@ runs:
       if: steps.check.outputs.run_cursor == 'true'
       shell: bash
       run: |
-        echo "DEBUG: Current directory: $(pwd)"
-        echo "DEBUG: github.workspace value: ${{ github.workspace }}"
-        echo "DEBUG: Files in github.workspace:"
-        ls -la ${{ github.workspace }}
-        
-        # Copy files to a temporary location that Docker can access
-        TEMP_DIR=$(mktemp -d)
-        cp ${{ github.workspace }}/comment.txt "$TEMP_DIR/"
-        cp ${{ github.workspace }}/context.json "$TEMP_DIR/"
-        
-        echo "DEBUG: Temp dir: $TEMP_DIR"
-        echo "DEBUG: Files in temp dir:"
-        ls -la "$TEMP_DIR"
+        echo "Reading files to pass as environment variables..."
+        COMMENT_CONTENT=$(cat ${{ github.workspace }}/comment.txt)
+        CONTEXT_JSON=$(cat ${{ github.workspace }}/context.json)
         
         docker pull ghcr.io/flow96/cursor-gitea-agent:latest
         docker run --rm \
-          -v "$TEMP_DIR":/repo \
-          -w /repo \
           -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
           -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
           -e GITEA_BASE_URL=${{ inputs.gitea_base_url }} \
           -e AI_MODEL=${{ inputs.ai_model }} \
+          -e COMMENT_CONTENT="$COMMENT_CONTENT" \
+          -e CONTEXT_JSON="$CONTEXT_JSON" \
           ghcr.io/flow96/cursor-gitea-agent:latest
-        
-        # Cleanup
-        rm -rf "$TEMP_DIR"
