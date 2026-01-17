@@ -38,7 +38,7 @@ jobs:
 
 Store secrets for the following parameters:
 - `cursor_api_key` (required): Your Cursor API key
-- `gitea_token` (required): Gitea API token with repository access
+- `gitea_token` (required): Gitea API token created from the new cursor account with repository access
 - `gitea_base_url` (required): Your Gitea instance URL
 - `ai_model` (required): AI model to use (default: `sonnet-4.5`)
 
