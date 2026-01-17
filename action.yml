@@ -76,7 +76,7 @@ runs:
         
         docker pull ghcr.io/flow96/cursor-gitea-agent:latest
         docker run --rm \
-          -v ${{ github.workspace }}:/repo \
+          --mount type=bind,source=${{ github.workspace }},target=/repo \
           -w /repo \
           -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
           -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
