@@ -1,6 +1,8 @@
 # Use Ubuntu as base image
 FROM ubuntu:24.04
 
+LABEL org.opencontainers.image.source=https://github.com/flow96/cursor-gitea-agent
+
 # Install required dependencies
 RUN apt-get update && apt-get install -y \
     curl \
