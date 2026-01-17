@@ -7,6 +7,9 @@ inputs:
     required: true
   gitea_base_url:
     required: true
+  ai_model:
+    required: true
+    default: sonnet-4.5
 
 runs:
   using: composite
@@ -59,56 +62,19 @@ runs:
         fi
       shell: bash
 
-    - name: Install Cursor CLI
-      run: |
-        curl https://cursor.com/install -fsS | bash
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-    - name: Download Gitea MCP Server
-      if: steps.check.outputs.run_cursor == 'true'
-      shell: bash
-      run: |
-        set -e
-
-        MCP_DIR="/tmp/gitea-mcp"
-        MCP_TAR="gitea-mcp.tar.gz"
-        MCP_URL="https://gitea.com/gitea/gitea-mcp/releases/download/v0.7.0/gitea-mcp_Linux_x86_64.tar.gz"
-
-        mkdir -p "$MCP_DIR"
-        cd "$MCP_DIR"
-
-        echo "Downloading Gitea MCP Server..."
-        curl -L "$MCP_URL" -o "$MCP_TAR"
-
-        echo "Extracting..."
-        tar -xzf "$MCP_TAR"
-
-        echo "Making binary executable..."
-        chmod +x gitea-mcp
-
-        echo "Gitea MCP Server ready at $MCP_DIR/gitea-mcp"
-
-    - name: Install MCP config
-      if: steps.check.outputs.run_cursor == 'true'
-      shell: bash
-      env:
-        GITEA_ACCESS_TOKEN: ${{ inputs.gitea_token }}
-        GITEA_BASE_URL: ${{ inputs.gitea_base_url }}
-        GITEA_MCP_PATH: /tmp/gitea-mcp/gitea-mcp
-      run: |
-        set -e
-        echo "Installing mcp.json..."
-        mkdir -p "$HOME/.cursor"
-        echo "{\"mcpServers\": {\"gitea\": {\"command\": \"${GITEA_MCP_PATH}\", \"args\": [\"-t\", \"stdio\"], \"env\": {\"GITEA_HOST\": \"${GITEA_BASE_URL}\", \"GITEA_ACCESS_TOKEN\": \"${GITEA_ACCESS_TOKEN}\"}}}}" >> "$HOME/.cursor/mcp.json"
-
-    - name: Run Cursor
+    - name: Script im Container ausführen
       if: steps.check.outputs.run_cursor == 'true'
       shell: bash
       env:
         CURSOR_API_KEY: ${{ inputs.cursor_api_key }}
         GITEA_ACCESS_TOKEN: ${{ inputs.gitea_token }}
         GITEA_BASE_URL: ${{ inputs.gitea_base_url }}
-        GITEA_MCP_PATH: /tmp/gitea-mcp/gitea-mcp
+        AI_MODEL: ${{ inputs.ai_model }}
       run: |
-        chmod +x "$GITHUB_ACTION_PATH/scripts/"*.sh
-        "$GITHUB_ACTION_PATH/scripts/run-cursor.sh"
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          -e CURSOR_API_KEY=${{CURSOR_API_KEY}} \
+          -e GITEA_ACCESS_TOKEN=${{GITEA_ACCESS_TOKEN}} \
+          -e GITEA_BASE_URL=${{GITEA_BASE_URL}} \
+          -e AI_MODEL=${{AI_MODEL}} \
+          ghcr.io/flow96/cursor-gitea-agent:latest
