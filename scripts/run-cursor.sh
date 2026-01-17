@@ -1,81 +1,37 @@
 #!/usr/bin/env bash
 set -e
 
-if ! command -v jq &> /dev/null; then
-    echo "Error: 'jq' command not found. Installing..."
-    # Try to install jq based on available package manager
-    if command -v apt-get &> /dev/null; then
-        apt-get update && apt-get install -y jq
-    elif command -v apk &> /dev/null; then
-        apk add --no-cache jq
-    elif command -v yum &> /dev/null; then
-        yum install -y jq
-    else
-        echo "Error: Could not install jq. Please install it manually."
-        exit 1
-    fi
-fi
+echo "Running"
+echo "{\"mcpServers\": {\"gitea\": {\"command\": \"/tmp/gitea-mcp/gitea-mcp\", \"args\": [\"-t\", \"stdio\"], \"env\": {\"GITEA_HOST\": \"${GITEA_BASE_URL}\", \"GITEA_ACCESS_TOKEN\": \"${GITEA_ACCESS_TOKEN}\"}}}}" >> "$HOME/.cursor/mcp.json"
 
 # Enable Gitea MCP server
 agent mcp enable gitea
 
-# Verify required files exist
-if [ ! -f "comment.txt" ]; then
-    echo "Error: comment.txt not found"
+
+if [ -z "$COMMENT_CONTENT" ]; then
+    echo "Error: COMMENT_CONTENT environment variable not set"
     exit 1
 fi
 
-if [ ! -f "context.json" ]; then
-    echo "Error: context.json not found"
-    echo "This file should be created by the 'Check Comment and Capture Context' step"
+if [ -z "$CONTEXT_JSON" ]; then
+    echo "Error: CONTEXT_JSON environment variable not set"
     exit 1
 fi
+
+echo "$COMMENT_CONTENT" > comment.txt
+echo "$CONTEXT_JSON" > context.json
 
 # Extract the user's request (everything after @cursor)
 COMMENT=$(cat comment.txt | sed 's/.*@cursor//')
-
-# Parse context using jq
-ISSUE_NUMBER=$(jq -r '.issue.number' context.json)
-ISSUE_TITLE=$(jq -r '.issue.title' context.json)
-ISSUE_BODY=$(jq -r '.issue.body // "No description provided"' context.json)
-ISSUE_STATE=$(jq -r '.issue.state' context.json)
-ISSUE_URL=$(jq -r '.issue.html_url' context.json)
-IS_PR=$(jq -r '.issue.is_pull_request' context.json)
-REPO_FULL_NAME=$(jq -r '.repository.full_name' context.json)
-REPO_OWNER=$(jq -r '.repository.owner' context.json)
-REPO_NAME=$(jq -r '.repository.name' context.json)
-COMMENT_USER=$(jq -r '.comment.user' context.json)
-COMMENT_URL=$(jq -r '.comment.html_url' context.json)
-ISSUE_AUTHOR=$(jq -r '.issue.user' context.json)
-LABELS=$(jq -r '.issue.labels | map(.name) | join(", ")' context.json)
-
-# Determine if this is an issue or PR
-if [ "$IS_PR" = "true" ]; then
-  ISSUE_TYPE="Pull Request"
-else
-  ISSUE_TYPE="Issue"
-fi
+CONTEXT=$(cat context.json)
 
 # Build the context-rich prompt
-PROMPT="You are an autonomous software engineering agent for repository: $REPO_FULL_NAME
+PROMPT="You are an autonomous software engineering agent called cursor for repository: $REPO_FULL_NAME
 
 ## CONTEXT INFORMATION
-
-**Repository:** $REPO_FULL_NAME
-**${ISSUE_TYPE} #${ISSUE_NUMBER}:** $ISSUE_TITLE
-**Status:** $ISSUE_STATE
-**Author:** $ISSUE_AUTHOR
-**Labels:** ${LABELS:-None}
-**URL:** $ISSUE_URL
-
-**${ISSUE_TYPE} Description:**
-$ISSUE_BODY
-
-**Comment by @${COMMENT_USER}:**
-$COMMENT_URL
+$CONTEXT
 
 ## USER REQUEST
-
 @${COMMENT_USER} has requested:
 $COMMENT
 
@@ -89,7 +45,6 @@ You have full access to Gitea via MCP tools. Use them to:
 - Post comments with your findings or questions
 
 ## YOUR INSTRUCTIONS
-
 
 1. **Gather More Context (if needed):**
    - Let the user know you've received the request and that you now start working on it.
@@ -119,13 +74,13 @@ You have full access to Gitea via MCP tools. Use them to:
 - Always use MCP tools for Gitea interactions
 - Be minimal, precise, and safe in your actions"
 
-
 echo "=================== PROMPT ==================="
 echo "$PROMPT"
 echo "=================== PROMPT END ==================="
 
-echo "=================== RUNNING CURSOR AGENT ==================="
+echo "=================== RUNNING CURSOR AGENT (Model: ${AI_MODEL}) ==================="
+
 # Run Cursor headless with the rich context
-agent -p "$PROMPT" --force --model grok --output-format=text
+agent -p "$PROMPT" --force --model ${AI_MODEL} --output-format=text
 
 echo "=================== CURSOR AGENT COMPLETED ==================="

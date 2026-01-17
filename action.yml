@@ -54,23 +54,18 @@ runs:
         }
         EOF
           
-          echo "Captured context:"
-          cat ${{ github.workspace }}/context.json
         else
           echo "No @cursor mention – skipping."
           echo "run_cursor=false" >> "$GITHUB_OUTPUT"
         fi
       shell: bash
 
-    - name: Script im Container ausführen
+    - name: Run Cursor Agent
       if: steps.check.outputs.run_cursor == 'true'
       shell: bash
       run: |
-        echo "Reading files to pass as environment variables..."
         COMMENT_CONTENT=$(cat ${{ github.workspace }}/comment.txt)
         CONTEXT_JSON=$(cat ${{ github.workspace }}/context.json)
-        
-        docker pull ghcr.io/flow96/cursor-gitea-agent:latest
         docker run --rm \
           -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
           -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
