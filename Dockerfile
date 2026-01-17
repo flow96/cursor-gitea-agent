@@ -32,7 +32,7 @@ ENV PATH="$PATH:/root/.local/bin"
 ENV HOME=/root
 
 # Set working directory
-WORKDIR /workspace
+WORKDIR /repo
 
 RUN mkdir -p "$HOME/.cursor"
 

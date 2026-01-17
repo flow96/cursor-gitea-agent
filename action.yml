@@ -76,8 +76,8 @@ runs:
         
         docker pull ghcr.io/flow96/cursor-gitea-agent:latest
         docker run --rm \
-          -v ${{ github.workspace }}:/workspace \
-          -w /workspace \
+          -v ${{ github.workspace }}:/repo \
+          -w /repo \
           -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
           -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
           -e GITEA_BASE_URL=${{ inputs.gitea_base_url }} \
