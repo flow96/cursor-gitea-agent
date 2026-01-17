@@ -8,18 +8,18 @@ echo "{\"mcpServers\": {\"gitea\": {\"command\": \"/tmp/gitea-mcp/gitea-mcp\", \
 agent mcp enable gitea
 
 
-if [ -z "$COMMENT_CONTENT" ]; then
-    echo "Error: COMMENT_CONTENT environment variable not set"
-    exit 1
-fi
+#if [ -z "$COMMENT_CONTENT" ]; then
+#    echo "Error: COMMENT_CONTENT environment variable not set"
+#    exit 1
+#fi
 
-if [ -z "$CONTEXT_JSON" ]; then
-    echo "Error: CONTEXT_JSON environment variable not set"
-    exit 1
-fi
+#if [ -z "$CONTEXT_JSON" ]; then
+#    echo "Error: CONTEXT_JSON environment variable not set"
+#    exit 1
+#fi
 
-echo "$COMMENT_CONTENT" > comment.txt
-echo "$CONTEXT_JSON" > context.json
+#echo "$COMMENT_CONTENT" > comment.txt
+#echo "$CONTEXT_JSON" > context.json
 
 # Extract the user's request (everything after @cursor)
 COMMENT=$(cat comment.txt | sed 's/.*@cursor//')

@@ -18,13 +18,13 @@ runs:
       id: check
       run: |
         echo "Checking the comment... ${{ gitea.event.comment.body }}"
-        echo "${{ gitea.event.comment.body }}" > ${{ github.workspace }}/comment.txt
+        echo "${{ gitea.event.comment.body }}" > comment.txt
         COMMENT_USER="${{ gitea.event.comment.user.login }}"
-        if grep -q -i "@cursor" ${{ github.workspace }}/comment.txt && ! echo "$COMMENT_USER" | grep -q -i "^cursor$"; then
+        if grep -q -i "@cursor" comment.txt && ! echo "$COMMENT_USER" | grep -q -i "^cursor$"; then
           echo "run_cursor=true" >> "$GITHUB_OUTPUT"
 
           # Capture rich context from the Gitea event
-          cat > ${{ github.workspace }}/context.json <<'EOF'
+          cat > context.json <<'EOF'
         {
           "comment": {
             "body": ${{ toJSON(gitea.event.comment.body) }},
@@ -63,14 +63,23 @@ runs:
     - name: Run Cursor Agent
       if: steps.check.outputs.run_cursor == 'true'
       shell: bash
+      env:
+        CURSOR_API_KEY: ${{ inputs.cursor_api_key }}
+        GITEA_ACCESS_TOKEN: ${{ inputs.gitea_token }}
+        GITEA_BASE_URL: ${{ inputs.gitea_base_url }}
+        AI_MODEL: ${{ inputs.ai_model }}
       run: |
-        COMMENT_CONTENT=$(cat ${{ github.workspace }}/comment.txt)
-        CONTEXT_JSON=$(cat ${{ github.workspace }}/context.json)
-        docker run --rm \
-          -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
-          -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
-          -e GITEA_BASE_URL=${{ inputs.gitea_base_url }} \
-          -e AI_MODEL=${{ inputs.ai_model }} \
-          -e COMMENT_CONTENT="$COMMENT_CONTENT" \
-          -e CONTEXT_JSON="$CONTEXT_JSON" \
-          ghcr.io/flow96/cursor-gitea-agent:latest
+        echo "Running Cursor Agent"
+        chmod +x "$GITHUB_ACTION_PATH/scripts/"*.sh
+        "$GITHUB_ACTION_PATH/scripts/run-cursor.sh"
+
+        #COMMENT_CONTENT=$(cat ${{ github.workspace }}/comment.txt)
+        #CONTEXT_JSON=$(cat ${{ github.workspace }}/context.json)
+        #docker run --rm \
+        #  -e CURSOR_API_KEY=${{ inputs.cursor_api_key }} \
+        #  -e GITEA_ACCESS_TOKEN=${{ inputs.gitea_token  }} \
+        #  -e GITEA_BASE_URL=${{ inputs.gitea_base_url }} \
+        #  -e AI_MODEL=${{ inputs.ai_model }} \
+        #  -e COMMENT_CONTENT="$COMMENT_CONTENT" \
+        #  -e CONTEXT_JSON="$CONTEXT_JSON" \
+        #  ghcr.io/flow96/cursor-gitea-agent:latest
