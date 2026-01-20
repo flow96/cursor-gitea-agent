@@ -55,3 +55,17 @@ Tagging the newly created `@cursor` user on an issue or pull request will trigge
 4. Provides intelligent code assistance responses.
 
 You can ask Cursor to review a PR, plan out a feature by filling out issue details or ask it to implement a specific feature and create a PR.
+
+### Ask Cursor to refine a feature request
+
+![Refine feature request example](docs/refine.png)
+
+
+### Ask Cursor to implement a feature
+
+![Implement a feature](docs/implement.png)
+
+
+### Ask Cursor to review a PR
+
+![Review a PR](docs/review.png)
